@@ -1,10 +1,10 @@
-# == Class: bioportal::database
+# == Class: bioportal::mysql
 #
-# database.pp for bioportal puppet module
+# mysql.pp for bioportal puppet module
 #
 # Author : Hugo van Duijn
 #
-class bioportal::database (
+class bioportal::mysql (
   $backup,
   $backupmysqlhour,
   $backupmysqlminute,

@@ -30,12 +30,20 @@ class bioportal (
   $rwwebdirs           = ['/var/www/bioportal/templates_c',
                           '/var/www/bioportal/cache'],
   $apachegroup         = 'www-data',
+  $php_memory_limit    = '256M',
+  $php_date_timezone   = 'Europe/Amsterdam',
+  $php_upload_max_filesize = '32M',
   $userDbName          = 'bioportal',
   $mysqlUser           = 'bioportal_user',
-  $mysqlPassword,
+  $mysqlPassword       = 'default mysqlpassword',
   $mysqlRootPassword   = 'defaultrootpassword',
   $mysqlBackupUser     = 'backupuser',
   $mysqlBackupPassword = 'defaultbackuppassword',
+  $postgresqlDbName    = 'bioportal',
+  $postgresqlUser      = 'bioportal_user',
+  $postgresqlPassword  = 'defaultpsqlpwd',
+  $postgresqlBackupUser     = 'backupuser',
+  $postgresqlBackupPassword = 'defaultbackuppassword',
   $appVersion          = '1.0.0',
   $instances           = {'bioportal.naturalis.nl' => { 
                            'serveraliases'   => '*.naturalis.nl',
@@ -52,7 +60,7 @@ class bioportal (
   # include concat and mysql 
   include concat::setup
 
-  class { 'bioportal::database':
+  class { 'bioportal::mysql':
     backup              => $backup,
     backupmysqlhour     => $backupmysqlhour,
     backupmysqlminute   => $backupmysqlminute,
@@ -64,6 +72,18 @@ class bioportal (
     mysqlRootPassword   => $mysqlRootPassword,
     mysqlBackupUser     => $mysqlBackupUser,
     mysqlBackupPassword => $mysqlBackupPassword,
+  }
+
+  class { 'bioportal::postgresql':
+    backup                   => $backup,
+    backuppostgresqlhour     => $backuppostgresqlhour,
+    backuppostgresqlminute   => $backuppostgresqlminute,
+    backupdir                => $backupdir,
+    postgresqlDbName         => $postgresqlDbName,
+    postgresqlUser           => $postgresqlUser,
+    postgresqlPassword       => $postgresqlPassword,
+    postgresqlBackupUser     => $postgresqlBackupUser,
+    postgresqlBackupPassword => $postgresqlBackupPassword,
   }
 
   # install apache
@@ -102,7 +122,7 @@ class bioportal (
   file { $webdirs:
     ensure 	=> 'directory',
     mode   	=> '0755',
-    require 	=> Vcsrepo[$coderoot],
+#    require 	=> Vcsrepo[$coderoot],
   }
 
   file { $rwwebdirs:
@@ -131,20 +151,26 @@ class bioportal (
     }
   }
 
-  # create config files based on templates. 
-  file { "${coderoot}/configuration/admin/configuration.php":
-    content       => template('bioportal/adminconfig.erb'),
-    mode          => '0640',
-    owner         => root,
-    group         => $apachegroup,
-    require       => Vcsrepo[$coderoot],
+  class { 'bioportal::php':
+    memory_limit        => $php_memory_limit,
+    date_timezone       => $php_date_timezone,
+    upload_max_filesize => $php_upload_max_filesize,
   }
 
-  file { "${coderoot}/configuration/app/configuration.php":
-    content       => template('bioportal/appconfig.erb'),
-    mode          => '0640',
-    owner         => root,
-    group         => $apachegroup,
-    require       => Vcsrepo[$coderoot],
-  }
+# create config files based on templates. 
+#  file { "${coderoot}/configuration/admin/configuration.php":
+#    content       => template('bioportal/adminconfig.erb'),
+#    mode          => '0640',
+#    owner         => root,
+#    group         => $apachegroup,
+#    require       => Vcsrepo[$coderoot],
+#  }
+#  file { "${coderoot}/configuration/app/configuration.php":
+#    content       => template('bioportal/appconfig.erb'),
+#    mode          => '0640',
+#    owner         => root,
+#    group         => $apachegroup,
+#    require       => Vcsrepo[$coderoot],
+#  }
+
 }
