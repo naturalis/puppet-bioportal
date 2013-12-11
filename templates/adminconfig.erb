@@ -1,0 +1,648 @@
+<?php
+
+ini_set('memory_limit', '512M');
+
+class configuration
+{
+    
+    private $_appFileRoot;
+
+    public function __construct ()
+    {
+
+		$this->_setConstants();
+
+        $d = $this->getGeneralSettings();
+        $d['app']['pathName'];
+        $this->_appFileRoot = dirname(__FILE__);
+        $this->_appFileRoot = str_replace('\\','/',
+            substr_replace($this->_appFileRoot,'', -1 * (strlen($d['app']['pathName']) + strlen('configuration')+1)));
+
+    }
+
+    public function getDatabaseSettings ()
+    {
+        
+        return array(
+            'host' => '<%= @adminDbHost -%>',
+            'user' => '<%= @mysqlUser -%>',
+            'password' => '<%= @mysqlPassword -%>',
+            'database' => '<%= @adminDbName -%>',
+            'tablePrefix' => '<%= @adminDbPrefix -%>',
+            'characterSet' => '<%= @adminDbCharset -%>'
+        );
+    
+    }
+
+    public function getSmartySettings ()
+    {
+
+        return array(
+            'dir_template' => $this->_appFileRoot . 'www/admin/templates/templates', 
+            'dir_compile' => $this->_appFileRoot . 'www/admin/templates/templates_c', 
+            'dir_cache' => $this->_appFileRoot . 'www/admin/templates/cache', 
+            'dir_config' => $this->_appFileRoot . 'www/admin/templates/configs', 
+            'caching' => 1,  // 1,
+            'compile_check' => true
+        );
+    
+    }
+
+    public function getGeneralSettings ()
+    {
+        
+        return array(
+            'debugMode' => false, 
+            'app' => array(
+                'name' => 'Linnaeus NG Administration', 
+                'version' => '@APP.VERSION@', 
+                'versionTimestamp' => '@TIMESTAMP@', 
+                'pathName' => 'admin',
+            ),
+			'serverTimeZone' => 'Europe/Amsterdam',
+            'maxSessionHistorySteps' => 10, 
+            'heartbeatFrequency' => 30000,  // milliseconds
+            'autoSaveFrequency' => 300000,  // milliseconds
+            'paths' => array(
+                'login' => '/views/users/login.php', 
+                'logout' => '/views/users/logout.php', 
+                'chooseProject' => '/views/users/choose_project.php', 
+                'projectIndex' => '/views/utilities/admin_index.php', 
+                'notAuthorized' => '/views/utilities/not_authorized.php', 
+                'moduleNotPresent' => '/views/utilities/module_not_present.php',
+                'mediaBasePath' => '../../../shared/media/project', 
+            ), 
+            'directories' => array(
+                'mediaDirProject' => $this->_appFileRoot . 'www/shared/media/project', 
+				'log' => $this->_appFileRoot . 'log',
+                'runtimeStyleRoot' => $this->_appFileRoot . 'www/app/style',
+				'cache' => $this->_appFileRoot . 'www/shared/cache'
+            ), 
+            'maxCategories' => 10,
+            'login-cookie' => array(
+                'name' => 'linnaeus-login',
+                'lifetime' => 30, // days
+            ),
+	        //'uiLanguages' => array(LANGUAGECODE_ENGLISH,LANGUAGECODE_DUTCH),
+	        'uiLanguages' => array(LANGUAGECODE_ENGLISH),
+			'soundPlayerPath' => '../../media/system/',
+			'soundPlayerName' => 'player_mp3.swf',
+			'useJavascriptLinks' => false,
+			'projectCssTemplateFile' => 'project-template.css',
+			'useJavascriptLinks' => false,
+        	'appNameFrontEnd' => 'app'
+        );
+    
+    }
+
+    public function getControllerSettingsProjects()
+    {
+        
+        return array(
+		  'media' =>
+			array(
+			  'allowedFormats' => 
+				array(
+				  array(
+					'mime' => 'image/png', 
+					'media_name' => 'PNG image', 
+					'media_type' => 'image', 
+					'maxSize' => 500000
+				  ),
+				  array(
+					'mime' => 'image/jpg', 
+					'media_name' => 'JPG image', 
+					'media_type'  => 'image', 
+					'maxSize' => 500000
+				  ),
+				  array(
+					'mime' => 'image/jpeg', 
+					'media_name' => 'JPG image', 
+					'media_type'  => 'image', 
+					'maxSize' => 500000
+				  ),
+
+				),
+				'defaultUploadMaxSize' => 2000000 // 2mb
+			),
+			'freeModulesMax' => 5
+      	);
+
+    }
+
+    public function getControllerSettingsUsers()
+    {
+        return array(
+			'dataChecks' =>
+				array(
+					'username' =>
+						array(
+							'minLength' => 2,
+							'maxLength' => 32
+						),
+					'password' =>
+						array(
+							'minLength' => 6,
+							'maxLength' => 24
+						),
+					'first_name' =>
+						array(
+							'minLength' => 1,
+							'maxLength' => 32
+						),
+					'last_name' =>
+						array(
+							'minLength' => 1,
+							'maxLength' => 32
+						),
+					'email_address' =>
+						array(
+							'minLength' => 1,
+							'maxLength' => 64,
+							'regexp' => '/^[^0-9][A-z0-9_]+([.][A-z0-9_]+)*[@][A-z0-9_]+([.][A-z0-9_]+)*[.][A-z]{2,4}$/'
+						)
+				),
+				'randomPassword' =>
+					array(
+						'chars' => 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789',
+						'length'=> 8
+					),
+				'email' =>
+					array(
+						'smtp_server' => 'mail.naturalis.nl',
+						'mailfrom_address' => 'linnaeus@eti.uva.nl',
+						'mailfrom_name' => 'linnaeus-system',
+						'mails' =>
+							array(
+								'newuser' =>
+									array(
+										'subject' => 'Your username and password for Linnaeus NG', 
+										'plain' =>
+											'Below are your username and password for access to the Linnaeus NG administration:'.chr(10).
+											'Username: %s'.chr(10).
+											'Password: %s'.chr(10).chr(10).
+											'You can access Linnaeus NG at:'.chr(10).
+											'[[url]]',
+										'html' =>
+											'<html>Below are your username and password for access to the Linnaeus NG administration:<br />'.chr(10).
+											'Username: %s<br />'.chr(10).
+											'Password: %s<br />'.chr(10).
+											'<br />'.chr(10).
+											'You can access Linnaeus NG at:<br />'.chr(10).
+											'<a href="[[url]]">[[url]]</a>',
+									),
+								'resetpassword' =>
+									array(
+										'subject' => 'Your new password for Linnaeus NG', 
+										'plain' =>
+											'Your password has been reset. Below is your new password for access to the Linnaeus NG administration:'.chr(10).
+											'Password: %s'.chr(10).chr(10).
+											'You can access Linnaeus NG at:'.chr(10).
+											'[[url]]',
+										'html' =>
+											'<html>Your password has been reset. Below is your new password for access to the Linnaeus NG administration:<br />'.chr(10).
+											'Password: %s<br />'.chr(10).
+											'<br />'.chr(10).
+											'You can access Linnaeus NG at:<br />'.chr(10).
+											'<a href="[[url]]">[[url]]</a>',
+									),
+							)
+					)
+
+		);
+	}
+
+    public function getControllerSettingsSpecies()
+    {
+        
+        return array(
+            'defaultCategories' =>
+                array(
+                    0 => array(
+                        'name' => 'Description',
+                        'default' => true,
+                        'mandatory' => true,
+                        'sections' => array ('General description','Biology')
+                    ),
+                    1 => array(                    
+                        'name' => 'Detailed Description',
+                        'sections' => array ('Behaviour','Cytology','Diagnostic Description',
+                            'Genetics','Look Alikes','Molecular Biology','Morphology','Physiology',
+                            'Size','Taxon Biology')
+                    ),
+                    2 => array(                    
+                        'name' => 'Ecology',
+                        'sections' => array ('Associations','Cyclicity','Dispersal','Distribution',
+                            'Ecology','Habitat','Life Cycle','Life Expectancy','Migration','Trophic Strategy')
+                    ),
+                    3 => array(                    
+                        'name' => 'Conservation',
+                        'sections' => array ('Conservation Status','Legislation','Management','Procedures',
+                            'Threats','Trends')
+                    ),
+                    4 => array(                    
+                        'name' => 'Relevance',
+                        'sections' => array ('Diseases','Risk Statement','Uses')
+                    ),
+                    5 => array(                    
+                        'name' => 'Reproductive',
+                        'sections' => array ('Population Biology','Reproduction')
+                    )
+                ),
+            'filterContent' =>
+                array(
+                    'html' => array(
+                        'doFilter' => true,
+                        'allowedTags' => '<a><b><strong><u><i><em><p><span><h1><h2><h3><h4><h5><h6><ul><ol><li><table><th><tr><td><br /><br>'
+                    )
+                ),
+            'media' =>
+                array(
+                    'allowedFormats' => 
+                        array(
+                            array(
+                                'mime' => 'image/png', 
+                                'media_name' => 'PNG image', 
+                                'media_type' => 'image', 
+                                'maxSize' => 1000000
+                            ),
+                            array(
+                                'mime' => 'image/jpg', 
+                                'media_name' => 'JPG image', 
+                                'media_type'  => 'image', 
+                                'maxSize' => 1000000
+                            ),
+                            array(
+                                'mime' => 'image/jpeg', 
+                                'media_name' => 'JPG image', 
+                                'media_type'  => 'image', 
+                                'maxSize' => 1000000
+                            ),
+                            array(
+                                'mime' => 'image/gif', 
+                                'media_name' => 'GIF image', 
+                                'media_type'  => 'image', 
+                                'maxSize' => 1000000
+                            ),
+                            array(
+                                'mime' => 'video/h264', 
+                                'media_name' => 'h.264 movie', 
+                                'media_type'  => 'video', 
+                                'maxSize' => 50000000
+                            ),
+                            array(
+                                'mime' => 'video/quicktime', 
+                                'media_name' => 'Quicktime', 
+                                'media_type'  => 'video', 
+                                'maxSize' => 50000000
+                            ),
+                            array(
+                                'mime' => 'audio/mpeg', 
+                                'media_name' => 'mp3', 
+                                'media_type'  => 'sound', 
+                                'maxSize' => 10000000
+                            ),
+                            array(
+                                'mime' => 'application/zip', 
+                                'media_name' => 'ZIP-file', 
+                                'media_type' => 'archive', 
+                                'maxSize' => 50000000
+                            ),
+						  array(
+							'mime' => 'image/tiff', 
+							'media_name' => 'TIFF image', 
+							'media_type'  => 'image', 
+							'maxSize' => 2000000
+						  ),
+						  array(
+							'mime' => 'application/pdf', 
+							'media_name' => 'PDF document', 
+							'media_type'  => 'document', 
+							'maxSize' => 2000000
+						  )
+                        ),
+                    'defaultUploadMaxSize' => 50000000 //50 mb (h264!?)
+                ),                
+            );
+
+    }
+
+    public function getControllerSettingsKey()
+    {
+        
+        return array(
+		  'media' =>
+			array(
+			  'allowedFormats' => 
+				array(
+				  array(
+					'mime' => 'image/png', 
+					'media_name' => 'PNG image', 
+					'media_type' => 'image', 
+					'maxSize' => 2000000
+				  ),
+				  array(
+					'mime' => 'image/jpg', 
+					'media_name' => 'JPG image', 
+					'media_type'  => 'image', 
+					'maxSize' => 2000000
+				  ),
+				  array(
+					'mime' => 'image/jpeg', 
+					'media_name' => 'JPG image', 
+					'media_type'  => 'image', 
+					'maxSize' => 2000000
+				  ),
+				  array(
+					'mime' => 'image/gif', 
+					'media_name' => 'GIF image', 
+					'media_type'  => 'image', 
+					'maxSize' => 2000000
+				  ),
+				  array(
+					'mime' => 'image/tiff', 
+					'media_name' => 'TIFF image', 
+					'media_type'  => 'image', 
+					'maxSize' => 2000000
+				  )
+				),
+				'defaultUploadMaxSize' => 2000000 // 2mb
+			),
+			'maxChoicesPerKeystep' => 6      
+      	);
+
+    }
+
+    public function getControllerSettingsGlossary()
+    {
+
+		return array(
+			'termsPerPage' => 20,
+            'filterContent' =>
+                array(
+                    'html' => array(
+                        'doFilter' => true,
+                        'allowedTags' => '<a><b><strong><u><i><em><p><span><h1><h2><h3><h4><h5><h6><ul><ol><li><table><th><tr><td><br /><br>'
+                    )
+                ),
+			'media' =>
+                array(
+                    'allowedFormats' => 
+                        array(
+                             array(
+                                'mime' => 'image/png', 
+                                'media_name' => 'PNG image', 
+                                'media_type' => 'image', 
+                                'maxSize' => 1000000
+                            ),
+                            array(
+                                'mime' => 'image/jpg', 
+                                'media_name' => 'JPG image', 
+                                'media_type'  => 'image', 
+                                'maxSize' => 1000000
+                            ),
+                            array(
+                                'mime' => 'image/jpeg', 
+                                'media_name' => 'JPG image', 
+                                'media_type'  => 'image', 
+                                'maxSize' => 1000000
+                            ),
+                            array(
+                                'mime' => 'image/gif', 
+                                'media_name' => 'GIF image', 
+                                'media_type'  => 'image', 
+                                'maxSize' => 1000000
+                            ),
+                            array(
+                                'mime' => 'video/h264', 
+                                'media_name' => 'h.264 movie', 
+                                'media_type'  => 'video', 
+                                'maxSize' => 50000000
+                            ),
+                            array(
+                                'mime' => 'video/quicktime', 
+                                'media_name' => 'Quicktime', 
+                                'media_type'  => 'video', 
+                                'maxSize' => 50000000
+                            ),
+                            array(
+                                'mime' => 'audio/mpeg', 
+                                'media_name' => 'mp3', 
+                                'media_type'  => 'sound', 
+                                'maxSize' => 10000000
+                            ),
+                            array(
+                                'mime' => 'application/zip', 
+                                'media_name' => 'ZIP-file', 
+                                'media_type' => 'archive', 
+                                'maxSize' => 50000000
+                            ),
+						  array(
+							'mime' => 'image/tiff', 
+							'media_name' => 'TIFF image', 
+							'media_type'  => 'image', 
+							'maxSize' => 2000000
+						  )
+                        ),
+                    'defaultUploadMaxSize' => 5000000 // 5mb
+                )
+			);
+
+	}
+
+    public function getControllerSettingsMatrixKey()
+    {
+
+		return array(
+			'characteristicTypes' => array(
+				array(
+					'name' => 'text',
+					'info' => 'a textual description.'
+				),
+				array(
+					'name' => 'media',
+					'info' => 'an image, video or soundfile.'
+				),
+				array(
+					'name' => 'range',
+					'info' => 'a value range, defined by a lowest and a highest value.'
+				),
+				array(
+					'name' => 'distribution',
+					'info' => 'a value distribution, defined by a mean and values for one and two standard deviations.'
+				)
+			),
+			'media' =>
+                array(
+				  'allowedFormats' => 
+					array(
+					  array(
+						'mime' => 'image/png', 
+						'media_name' => 'PNG image', 
+						'media_type' => 'image', 
+						'maxSize' => 1000000
+					  ),
+					  array(
+						'mime' => 'image/jpg', 
+						'media_name' => 'JPG image', 
+						'media_type'  => 'image', 
+						'maxSize' => 1000000
+					  ),
+					  array(
+						'mime' => 'image/jpeg', 
+						'media_name' => 'JPG image', 
+						'media_type'  => 'image', 
+						'maxSize' => 1000000
+					  ),
+					  array(
+						'mime' => 'image/gif', 
+						'media_name' => 'GIF image', 
+						'media_type'  => 'image', 
+						'maxSize' => 1000000
+					  ),
+					  array(
+						'mime' => 'video/h264', 
+						'media_name' => 'h.264 movie', 
+						'media_type'  => 'video', 
+						'maxSize' => 50000000
+					  ),
+					  array(
+						'mime' => 'video/quicktime', 
+						'media_name' => 'Quicktime', 
+						'media_type'  => 'video', 
+						'maxSize' => 50000000
+					  ),
+					  array(
+						'mime' => 'audio/mpeg', 
+						'media_name' => 'mp3', 
+						'media_type'  => 'sound', 
+						'maxSize' => 10000000
+					  ),
+					  array(
+						'mime' => 'image/tiff', 
+						'media_name' => 'TIFF image', 
+						'media_type'  => 'image', 
+						'maxSize' => 2000000
+					  )
+					),
+                    'defaultUploadMaxSize' => 5000000 // 5mb
+                )			
+		);
+
+    }
+
+    public function getControllerSettingsModule()
+    {
+
+		return array(
+			'media' =>
+                array(
+				  'allowedFormats' => 
+					array(
+					  array(
+						'mime' => 'image/png', 
+						'media_name' => 'PNG image', 
+						'media_type' => 'image', 
+						'maxSize' => 1000000
+					  ),
+					  array(
+						'mime' => 'image/jpg', 
+						'media_name' => 'JPG image', 
+						'media_type'  => 'image', 
+						'maxSize' => 1000000
+					  ),
+					  array(
+						'mime' => 'image/jpeg', 
+						'media_name' => 'JPG image', 
+						'media_type'  => 'image', 
+						'maxSize' => 1000000
+					  ),
+					  array(
+						'mime' => 'image/gif', 
+						'media_name' => 'GIF image', 
+						'media_type'  => 'image', 
+						'maxSize' => 1000000
+					  ),
+					  array(
+						'mime' => 'image/tiff', 
+						'media_name' => 'TIFF image', 
+						'media_type'  => 'image', 
+						'maxSize' => 2000000
+					  )
+					),
+				'defaultUploadMaxSize' => 5000000 // 5mb
+			)
+		);
+
+    }
+
+    public function getControllerSettingsMapKey()
+    {
+
+		return array(
+			'speciesPerPage' => 20,
+            'maxTypes' => 10,
+			'urlToCheckConnectivity' =>'http://maps.google.com/maps/api/js?sensor=false',
+			'SRID' => 4326
+		);
+
+    }
+
+    public function getControllerSettingsImport()
+    {
+
+		return array(
+			'defaultProjectCss' =>'../../style/import-default-stylesheet.css',
+		);
+
+    }
+
+    public function getControllerSettingsUtilities()
+    {
+
+		return array(
+			'excerptPreMatchLength' => 25,
+			'excerptPostMatchLength' => 25,
+			'minSearchLength' => 4,
+			'maxSearchLength' => 50,
+			'excerptPrePostMatchString' => '...'
+		);
+
+    }
+
+	private function _setConstants()
+	{
+
+		if (!defined('ID_ROLE_SYS_ADMIN')) define('ID_ROLE_SYS_ADMIN',1);
+		if (!defined('ID_ROLE_LEAD_EXPERT')) define('ID_ROLE_LEAD_EXPERT',2);
+
+		if (!defined('TIMEOUT_COL_RETRIEVAL')) define('TIMEOUT_COL_RETRIEVAL',600); // secs.
+
+		if (!defined('LANGUAGECODE_DUTCH')) define('LANGUAGECODE_DUTCH',24);
+		if (!defined('LANGUAGECODE_ENGLISH')) define('LANGUAGECODE_ENGLISH',26);
+
+		if (!defined('MODCODE_INTRODUCTION')) define('MODCODE_INTRODUCTION',1);
+		if (!defined('MODCODE_GLOSSARY')) define('MODCODE_GLOSSARY',2);
+		if (!defined('MODCODE_LITERATURE')) define('MODCODE_LITERATURE',3);
+		if (!defined('MODCODE_SPECIES')) define('MODCODE_SPECIES',4);
+		if (!defined('MODCODE_HIGHERTAXA')) define('MODCODE_HIGHERTAXA',5);
+		if (!defined('MODCODE_KEY')) define('MODCODE_KEY',6);
+		if (!defined('MODCODE_MATRIXKEY')) define('MODCODE_MATRIXKEY',7);
+		if (!defined('MODCODE_DISTRIBUTION')) define('MODCODE_DISTRIBUTION',8);
+		if (!defined('MODCODE_CONTENT')) define('MODCODE_CONTENT',10);
+		if (!defined('MODCODE_INDEX')) define('MODCODE_INDEX',11);
+		if (!defined('MODCODE_UTILITIES')) define('MODCODE_UTILITIES',12);
+		
+		if (!defined('EMPIRE_RANK_ID')) define('EMPIRE_RANK_ID',1);
+		if (!defined('KINGDOM_RANK_ID')) define('KINGDOM_RANK_ID',2);
+		if (!defined('GENUS_RANK_ID')) define('GENUS_RANK_ID',63);
+		if (!defined('SPECIES_RANK_ID')) define('SPECIES_RANK_ID',74);
+		if (!defined('SUBSPECIES_RANK_ID')) define('SUBSPECIES_RANK_ID',77);
+		if (!defined('GRAFT_CHIMERA_RANK_ID')) define('GRAFT_CHIMERA_RANK_ID',88);
+
+		if (!defined('PREDICATE_VALID_NAME')) define('PREDICATE_VALID_NAME','isValidNameOf');
+		if (!defined('PREDICATE_PREFERRED_NAME')) define('PREDICATE_PREFERRED_NAME','isPreferredNameOf');
+		
+	}
+
+}

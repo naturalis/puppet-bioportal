@@ -1,0 +1,7 @@
+#/bin/sh
+rsync -r --delete <%= @coderoot -%>/www/app/style/custom /tmp/backups/
+rsync -r --delete <%= @coderoot -%>/www/shared/media/project /tmp/backups/
+
+
+
+
