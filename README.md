@@ -1,26 +1,29 @@
 puppet-bioportal
 ===================
 
-Puppet modules for deployment of Nederlands Soortenregister 
+Puppet modules for deployment of bioportal framework
 
 Parameters
 -------------
-All parameters are read from hiera
+All parameters can be read from hiera, set in init.pp or configured using foreman. 
 
 Classes
 -------------
 - bioportal
-- bioportal::database
+- bioportal::mysql
 - bioportal::instances
-- bioportal::restore
+- bioportal::postgresql
 - bioportal::backup
-
+- bioportal::php
 
 Dependencies
 -------------
 - vcsrepo
-- apache2 module from puppetlabs
+- puppetlabs/apache2 
 - Jimdo/puppet-duplicity
+- puppetlabs/postgresql ( v.3.2.0 )
+- puppetlabs/mysql ( v.2.1.0 )
+- thias/puppet-php
 
 Examples
 -------------
@@ -29,7 +32,7 @@ dest_id and dest_key are API keys for amazon s3 account
 
 
 ```
-bioportal:
+bioportal::instances
   www.bioportal.nl:
     serveraliases: 'nederlandssoortenregister.nl'
     aliases:
@@ -49,11 +52,10 @@ bioportal::backupminute: 5
 bioportal::backupdir: '/tmp/backups'
 bioportal::dest_id: 'provider_id'
 bioportal::dest_key: 'provider_key'
-bioportal::restore: true
 bioportal::bucket: 'linuxbackups'
 bioportal::bucketfolder: 'bioportal'
-bioportal::mysqlUser: 'linnaeus_user'
-bioportal::mysqlPassword: 'skgh23876SDFSD2342
+bioportal::mysqlUser: 'bioportal'
+bioportal::mysqlPassword: 'defaultpwd'
 
 ```
 Puppet code
@@ -62,7 +64,7 @@ class { bioportal: }
 ```
 Result
 -------------
-Working webserver with mysql, restored from duplicity, code from subversion and config files based on templates. with daily duplicity backup.
+Server with running postgres server incl. postgis enabled database, running mysql server incl. database and user access. Apache webserver with virtualhost and php incl. pqsql and mysql modules. 
 
 Limitations
 -------------

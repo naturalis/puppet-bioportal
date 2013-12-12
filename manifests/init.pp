@@ -116,13 +116,12 @@ class bioportal (
     }
   }
 
-  # create application specific directories
+  # create application specific directories, uncomment require when using svn repo
   file { $webdirs:
     ensure      => 'directory',
     mode        => '0755',
-    if $repoenabled == true {
-      require   => Vcsrepo[$coderoot],
-    }
+  # require   => Vcsrepo[$coderoot],
+
   }
 
   file { $rwwebdirs:
