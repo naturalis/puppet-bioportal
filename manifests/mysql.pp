@@ -18,6 +18,7 @@ class bioportal::mysql (
   $mysqlBackupPassword,
 ) {
 
+  # Install Mysql server with correct php modules
   class { 'mysql::bindings':
     php_enable       => true
   }
@@ -25,6 +26,7 @@ class bioportal::mysql (
     root_password    => $mysqlRootPassword
   }
 
+  # create database with database user
   mysql::db { $userDbName:
     user           => $mysqlUser,
     password       => $mysqlPassword,
@@ -32,13 +34,14 @@ class bioportal::mysql (
     grant          => ['ALL'],
   }
 
-  mysql_grant { "${mysqlbackupuser}@localhost/${userDbName}.*":
-    ensure         => 'present',
-    user           => "${mysqlBackupUser}@localhost",
-    options        => ['GRANT'],
-    privileges     => ['ALL'],
-    table          => '*.*',
-  }
+#  mysql_grant { "${mysqlbackupuser}@localhost/${userDbName}.*":
+#    ensure         => 'present',
+#    user           => "${mysqlBackupUser}@localhost",
+#    options        => ['GRANT'],
+#    privileges     => ['ALL'],
+#    table          => '*.*',
+# }
+
   # create mysql backup and restore scripts
   if ($backup == true) or ($restore == true) {
     class { 'mysql::server::backup':

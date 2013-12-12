@@ -10,10 +10,8 @@ class bioportal (
   $backupminute        = 5,
   $backupmysqlhour     = 4,
   $backupmysqlminute   = 4,
-  $restore             = false,
   $version             = 'latest',
   $backupdir           = '/tmp/backups',
-  $restore_directory   = '/tmp/restore',
   $bucket              = 'linuxbackups',
   $bucketfolder        = 'bioportal',
   $dest_id             = undef,
@@ -22,18 +20,18 @@ class bioportal (
   $pubkey_id           = undef,
   $full_if_older_than  = 30,
   $remove_older_than   = 31,
-  $coderepo            = 'svn://dev2.etibioinformatics.nl/linnaeus_ng/trunk',
+  $coderepo            = 'svn://repoaddress/trunk',
   $repotype            = 'svn',
   $repoenabled         = false,
   $coderoot            = '/var/www/bioportal',
   $webdirs             = ['/var/www/bioportal'],
-  $rwwebdirs           = ['/var/www/bioportal/templates_c',
+  $rwwebdirs           = ['/var/www/bioportal/upload',
                           '/var/www/bioportal/cache'],
   $apachegroup         = 'www-data',
   $php_memory_limit    = '256M',
   $php_date_timezone   = 'Europe/Amsterdam',
   $php_upload_max_filesize = '32M',
-  $userDbName          = 'bioportal',
+  $userDbName          = 'nlbif_site',
   $mysqlUser           = 'bioportal_user',
   $mysqlPassword       = 'default mysqlpassword',
   $mysqlRootPassword   = 'defaultrootpassword',
@@ -108,21 +106,23 @@ class bioportal (
   # Get data from SVN repo
   if $repoenabled == true { 
     package { 'subversion':
-      ensure => installed,
+      ensure    => installed,
     }
     vcsrepo { $coderoot:
-      ensure   => latest,
-      provider => $repotype,
-      source   => $coderepo,
-      require  => [ Package['subversion'],Host['localhost'] ],
+      ensure    => latest,
+      provider  => $repotype,
+      source    => $coderepo,
+      require   => [ Package['subversion'],Host['localhost'] ],
     }
   }
 
-  # create application specific directories  
+  # create application specific directories
   file { $webdirs:
-    ensure 	=> 'directory',
-    mode   	=> '0755',
-#    require 	=> Vcsrepo[$coderoot],
+    ensure      => 'directory',
+    mode        => '0755',
+    if $repoenabled == true {
+      require   => Vcsrepo[$coderoot],
+    }
   }
 
   file { $rwwebdirs:
@@ -151,13 +151,14 @@ class bioportal (
     }
   }
 
+  # install php modules and configure php parameters
   class { 'bioportal::php':
     memory_limit        => $php_memory_limit,
     date_timezone       => $php_date_timezone,
     upload_max_filesize => $php_upload_max_filesize,
   }
 
-# create config files based on templates. 
+# create config files based on templates, not used at this moment. Usefull when using SVN repo
 #  file { "${coderoot}/configuration/admin/configuration.php":
 #    content       => template('bioportal/adminconfig.erb'),
 #    mode          => '0640',
