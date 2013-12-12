@@ -1,0 +1,18 @@
+#!/bin/sh
+
+BKPDIR="<%= @backupdir %>/postgres"
+BKPFMT="<%= @backupformat %>"
+export PGOPTIONS='-c statement_timeout=0'
+mkdir -p $BKPDIR
+
+su postgres -c 'pg_dumpall --globals-only |bzip2 > /tmp/ACCOUNT-OBJECTS.dump.bz'
+su postgres -c 'pg_dumpall |bzip2 > /tmp/postgres.dump.bz'
+mv /tmp/ACCOUNT-OBJECTS.dump.bz $BKPDIR
+mv /tmp/postgres.dump.bz $BKPDIR
+
+
+
+
+
+
+
