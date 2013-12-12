@@ -16,5 +16,11 @@ class bioportal::php (
     upload_max_filesize => $upload_max_filesize,
   }
 
+  php::ini { '/etc/php5/apache2/php.ini':
+    memory_limit        => $memory_limit,
+    date_timezone       => $date_timezone,
+    upload_max_filesize => $upload_max_filesize,
+  }
+
   php::module { [ 'pgsql' ]: }
 }
